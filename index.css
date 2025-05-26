@@ -68,10 +68,6 @@
   scroll-margin-top: 100px;
 }
 
-html, body {
-  overscroll-behavior: none;
-}
-
 [data-theme="dark"] {
   --color-primary: #6c93d6;
   --color-primary-transparent: rgba(174, 198, 251, 0.509);
