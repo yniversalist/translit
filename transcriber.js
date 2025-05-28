@@ -550,7 +550,7 @@ async function updateFavoritesList() {
     const button = document.createElement('button');
     button.className = 'favorite-button';
     button.innerHTML = `
-      <span class="material-symbols-outlined">heart_broken</span>
+      <span class="material-symbols-outlined">heart_minus</span>
       ${languageDisplay} - ${styleDisplay}
     `;
     
