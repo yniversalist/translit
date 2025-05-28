@@ -91,158 +91,141 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  let isUpperCase = true;
-  let currentSection = 'russian';
-  
-  if (!keyboardToggle || !virtualKeyboard || !inputText) {
-    console.error("Some keyboard elements are missing from the DOM");
-    return; 
-  }
-  
-  if (!document.getElementById('keyboardGrid')) {
-    console.error(`Required keyboard grid is missing`);
-    return; 
-  }
-  
-  keyboardToggle.addEventListener('click', function() {
-    if (virtualKeyboard.style.display !== 'block') {
-      virtualKeyboard.style.display = 'block';
-      renderKeyboard();
-      positionKeyboard();
-    } else {
-      virtualKeyboard.style.display = 'none';
-    }
-  });
-  
-  function positionKeyboard() {
-    virtualKeyboard.style.top = 'calc(100% + 10px)';
-    virtualKeyboard.style.bottom = 'auto';
-  }
-  
-  document.addEventListener('click', function(e) {
-    if (virtualKeyboard.style.display === 'block' &&
-        !virtualKeyboard.contains(e.target) &&
-        e.target !== keyboardToggle &&
-        !keyboardToggle.contains(e.target)) {
-      virtualKeyboard.style.display = 'none';
-    }
-  });
+ let isUpperCase = true;
+ let currentSection = 'russian';
+            
+            function checkScrollability() {
+                const isScrollable = keyboardTabs.scrollWidth > keyboardTabs.clientWidth;
+                keyboardTabs.classList.toggle('scrollable', isScrollable);
+                scrollIndicator.classList.toggle('visible', isScrollable);
+            }
+            
+            keyboardToggle.addEventListener('click', function() {
+                if (virtualKeyboard.style.display !== 'block') {
+                    virtualKeyboard.style.display = 'block';
+                    renderKeyboard();
+                    positionKeyboard();
+                    setTimeout(checkScrollability, 100);
+                } else {
+                    virtualKeyboard.style.display = 'none';
+                }
+            });
+            
+            function positionKeyboard() {
+                virtualKeyboard.style.top = 'calc(100% + 10px)';
+                virtualKeyboard.style.bottom = 'auto';
+            }
+            
+            document.addEventListener('click', function(e) {
+                if (virtualKeyboard.style.display === 'block' &&
+                    !virtualKeyboard.contains(e.target) &&
+                    e.target !== keyboardToggle &&
+                    !keyboardToggle.contains(e.target)) {
+                    virtualKeyboard.style.display = 'none';
+                }
+            });
 
-  if (keyboardTabs) {
-    keyboardTabs.addEventListener('click', function(e) {
-      if (e.target.classList.contains('keyboard-tab')) {
-        const section = e.target.getAttribute('data-section');
-        
-        document.querySelectorAll('.keyboard-tab').forEach(tab => {
-          tab.classList.remove('active');
+            if (keyboardTabs) {
+                keyboardTabs.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('keyboard-tab')) {
+                        const section = e.target.getAttribute('data-section');
+                        
+                        document.querySelectorAll('.keyboard-tab').forEach(tab => {
+                            tab.classList.remove('active');
+                        });
+                        e.target.classList.add('active');
+                        
+                        currentSection = section;
+                        renderKeyboard();
+                    }
+                });
+                
+                keyboardTabs.addEventListener('scroll', function() {
+                    checkScrollability();
+                });
+            }
+            
+            function renderKeyboard() {
+                const keyboardGrid = document.getElementById('keyboardGrid');
+                keyboardGrid.classList.add('keyboard-grid');
+                keyboardGrid.innerHTML = '';
+                
+                const uppercaseKey = document.createElement('button');
+                uppercaseKey.className = 'keyboard-key uppercase-key';
+                uppercaseKey.innerHTML = '<span class="material-symbols-outlined" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">shift_lock</span>';
+                
+                uppercaseKey.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    isUpperCase = !isUpperCase;
+                    renderKeyboard();
+                });
+                keyboardGrid.appendChild(uppercaseKey);
+                
+                if (currentSection === 'moldovan' || currentSection === 'church_slavonic' || currentSection === 'russian' || currentSection === 'belarusian' || currentSection === 'bulgarian' || currentSection === 'ukrainian' || currentSection === 'all') {
+                    const fontToggleKey = document.createElement('button');
+                    fontToggleKey.className = 'keyboard-key uppercase-key';
+                    fontToggleKey.innerHTML = '<span class="material-symbols-outlined" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">history_edu</span>';
+                    fontToggleKey.title = "Toggle Monomakh font";
+                    
+                    fontToggleKey.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        keyboardGrid.classList.toggle('monomakh-font');
+                    });
+                    keyboardGrid.appendChild(fontToggleKey);
+                }
+                
+                if (keyboardSections[currentSection]) {
+                    keyboardSections[currentSection].chars.forEach(char => {
+                        const key = createKey(char);
+                        keyboardGrid.appendChild(key);
+                    });
+                }
+            }
+            
+            function createKey(char) {
+                const key = document.createElement('button');
+                key.className = 'keyboard-key';
+                key.textContent = isUpperCase ? char : char.toLowerCase();
+                
+                key.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    insertAtCursor(inputText, key.textContent);
+                });
+                return key;
+            }
+            
+            function insertAtCursor(textArea, text) {
+                const start = textArea.selectionStart;
+                const end = textArea.selectionEnd;
+                const textBefore = textArea.value.substring(0, start);
+                const textAfter = textArea.value.substring(end);
+                
+                textArea.value = textBefore + text + textAfter;
+                
+                textArea.selectionStart = start + text.length;
+                textArea.selectionEnd = start + text.length;
+                
+                textArea.focus();
+            }
+            
+            virtualKeyboard.style.display = 'none';
+            
+            if (keyboardTabs) {
+                keyboardTabs.innerHTML = '';
+                
+                for (const [id, section] of Object.entries(keyboardSections)) {
+                    const tab = document.createElement('button');
+                    tab.className = 'keyboard-tab';
+                    if (id === currentSection) tab.classList.add('active');
+                    tab.setAttribute('data-section', id);
+                    tab.textContent = section.label;
+                    keyboardTabs.appendChild(tab);
+                }
+            }
+            
+            window.addEventListener('resize', function() {
+                if (virtualKeyboard.style.display === 'block') {
+                    setTimeout(checkScrollability, 100);
+                }
+            });
         });
-        e.target.classList.add('active');
-        
-        currentSection = section;
-        renderKeyboard();
-      }
-    });
-  }
-  
-  function renderKeyboard() {
-    const keyboardGrid = document.getElementById('keyboardGrid');
-    keyboardGrid.classList.add('keyboard-grid');    
-    keyboardGrid.innerHTML = '';
-    
-    const uppercaseKey = document.createElement('button');
-    uppercaseKey.className = 'keyboard-key uppercase-key';
-    uppercaseKey.innerHTML = '<span class="material-symbols-outlined" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">shift_lock</span>';
-    
-    uppercaseKey.addEventListener('click', function(e) {
-      e.stopPropagation();
-      isUpperCase = !isUpperCase;
-      renderKeyboard();
-    });
-    keyboardGrid.appendChild(uppercaseKey);
-    
-    if (currentSection === 'moldovan' || currentSection === 'church_slavonic' || currentSection === 'russian' || currentSection === 'belarusian' || currentSection === 'bulgarian' || currentSection === 'ukrainian' || currentSection === 'all') {
-      const fontToggleKey = document.createElement('button');
-      fontToggleKey.className = 'keyboard-key uppercase-key';
-      fontToggleKey.innerHTML = '<span class="material-symbols-outlined" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">history_edu</span>';;
-      fontToggleKey.title = "Toggle Monomakh font";
-      
-      fontToggleKey.addEventListener('click', (e) => {
-        e.stopPropagation();
-        keyboardGrid.classList.toggle('monomakh-font');
-      });
-      keyboardGrid.appendChild(fontToggleKey); 
-    }
-    
-    if (keyboardSections[currentSection]) {
-      keyboardSections[currentSection].chars.forEach(char => {
-        const key = createKey(char);
-        keyboardGrid.appendChild(key);
-      });
-    }
-  }
-  
-  function createKey(char) {
-    const key = document.createElement('button');
-    key.className = 'keyboard-key';
-    key.textContent = isUpperCase ? char : char.toLowerCase();
-    
-    key.addEventListener('click', function(e) {
-      e.stopPropagation(); 
-      insertAtCursor(inputText, key.textContent);
-    });
-    return key;
-  }
-  
-  function insertAtCursor(textArea, text) {
-    const start = textArea.selectionStart;
-    const end = textArea.selectionEnd;
-    const textBefore = textArea.value.substring(0, start);
-    const textAfter = textArea.value.substring(end);
-    
-    textArea.value = textBefore + text + textAfter;
-    
-    textArea.selectionStart = start + text.length;
-    textArea.selectionEnd = start + text.length;
-    
-    textArea.focus();
-  }
-  
-  virtualKeyboard.style.display = 'none';
-  
-  if (keyboardTabs) {
-    keyboardTabs.innerHTML = '';
-    
-    for (const [id, section] of Object.entries(keyboardSections)) {
-      const tab = document.createElement('button');
-      tab.className = 'keyboard-tab';
-      if (id === currentSection) tab.classList.add('active');
-      tab.setAttribute('data-section', id);
-      tab.textContent = section.label;
-      keyboardTabs.appendChild(tab);
-    }
-  }
-  
-  window.addKeyboardSection = function(sectionId, label, characters) {
-    keyboardSections[sectionId] = {
-      label: label,
-      chars: characters
-    };
-    
-    if (!document.querySelector(`.keyboard-tab[data-section="${sectionId}"]`)) {
-      const tab = document.createElement('button');
-      tab.className = 'keyboard-tab';
-      tab.setAttribute('data-section', sectionId);
-      tab.textContent = label;
-      keyboardTabs.appendChild(tab);
-    }
-  };
-  
-  window.updateKeyboardSection = function(sectionId, characters) {
-    if (keyboardSections[sectionId]) {
-      keyboardSections[sectionId].chars = characters;
-      if (currentSection === sectionId && virtualKeyboard.style.display === 'block') {
-        renderKeyboard();
-      }
-    }
-  };
-});
