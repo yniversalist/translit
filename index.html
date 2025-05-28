@@ -74,21 +74,14 @@
           <span class="material-symbols-outlined">keyboard</span>
         </div>
         <div class="virtual-keyboard" id="virtualKeyboard">
-          <div class="keyboard-tabs" id="keyboardTabs">
-            <button class="keyboard-tab" data-section="bcms">BCMS</button>            
-            <button class="keyboard-tab" data-section="belarusian">Belarusian</button>
-            <button class="keyboard-tab" data-section="bulgarian">Bulgarian</button>
-            <button class="keyboard-tab" data-section="macedonian">Macedonian</button>
-            <button class="keyboard-tab" data-section="moldovan">Romanian</button>
-            <button class="keyboard-tab active" data-section="russian">Russian</button>
-            <button class="keyboard-tab" data-section="rusyn">Rusyn</button>
-            <button class="keyboard-tab" data-section="ukrainian">Ukrainian</button>
-            <button class="keyboard-tab" data-section="all">Full Cyrillic</button>
-            <button class="keyboard-tab" data-section="latin_all">Full Latin</button>
+            <div class="keyboard-tabs-container">
+                <div class="scroll-indicator" id="scrollIndicator">
+                    <span class="material-symbols-outlined">keyboard_arrow_right</span>
+                </div>
+            <div class="keyboard-tabs" id="keyboardTabs"></div>
+            <div class="keyboard-grid" id="keyboardGrid"></div>
           </div>
-          <div class="keyboard-grid" id="keyboardGrid"></div>
         </div>
-      </div>
       <div class="text-separator"></div>
       <div class="input-container">
         <textarea id="outputText" class="text-area"></textarea>
